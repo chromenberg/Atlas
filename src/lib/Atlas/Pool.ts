@@ -3,6 +3,9 @@ class Pool {
 	constructor() {
 		
 	}
+
+	// --- PROPERTY ACCESSORS --- 
+	
 }
 
 // class PoolManager {
