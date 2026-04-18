@@ -2,34 +2,6 @@ import { Client } from "cassandra-driver";
 import { AtlasDB } from "../Configs/Config.js";
 import type { ConcatenatedQuery, CQLObjType, CQLOpType } from "./typings/CQLRequests.js";
 import {Logger, LogLevel} from "../../../../Logging/dist/Logger.js"
-export namespace AtlasClient {
-    // connect to atlas , might be made into a pool
-    export const cluster: Client = new Client({
-        contactPoints: AtlasDB.Connect.Locations,
-        localDataCenter: "datacenter1",
-        credentials: AtlasDB.Auth
-    })
-
-    export namespace Builders {
-        export function Keyspace(name: string) {
-            Logger.sendLog(
-                LogLevel.Info,
-                ["Atlas","AtlasClient","Builders","Keyspace()"],
-                "Creating a Keyspace called '"+name+"' if not present"
-            )
-            return "CREATE KEYSPACE IF NOT EXISTS "+name;
-        }
-    }
-
-    export function init() {
-        Logger.sendLog(
-            LogLevel.Info,
-            ["Atlas","AtlasClient","init()"],
-            "Initializing AtlasClient"
-        )
-        cluster.execute(Builders.Keyspace("ATLAS"));
-    }
-}
 
 class CQLRequest {
     constructor(
@@ -50,7 +22,17 @@ class CQLRequest {
 }
 
 class AtlasConnection {
+    public readonly cluster: Client;
+    constructor() {
+        this.cluster = new Client({
+            contactPoints: AtlasDB.Connect.Locations,
+            localDataCenter: "datacenter1",
+            credentials: AtlasDB.Auth,
+            keyspace: "ATLAS"
+        })
+    }
 
+     
 }
 
 class AtlasConnectionPool {
