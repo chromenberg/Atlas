@@ -3,15 +3,15 @@ import { formatError } from "../../ErrorFormatter.js";
 import { PoolError } from "./PoolErrors.js";
 
 export enum PoolItemState {
-    PREPARE, // Resource does not yet have a callback
-    STANDBY, // Resource assigned a callback, not in use
-    ACTIVE,  // Resource actively in use
-	SHUTDOWN // Resource had a fatal error and has been shut down to be restarted
+	PREPARE, // 0 - Resource does not yet have a callback
+	STANDBY, // 1 - Resource assigned a callback, not in use
+	ACTIVE,  // 2 - Resource actively in use
+	SHUTDOWN // 3 - Resource had a fatal error and has been shutdown to prevent issues while the pool repairs it
 }
 
 export interface PoolStates {
-    key: string
-    state: PoolItemState
+	key: string
+	state: PoolItemState
 }
 export type PoolItemPair = [string, PoolItem];
 
@@ -46,19 +46,24 @@ class PoolItem {
 		this._state = PoolItemState.STANDBY;
 	}
 
+	public setShutdown() { // flag the resource as shutdown, this means the pool will try and repair it if told to. 
+		this._state = PoolItemState.SHUTDOWN;
+	}
+
 	public get callback(): Object {
 		// @ts-ignore - This will ALWAYS be present as the pool will never dispatch a resource without a callback
 		return this._callback as Object; // still add a type conversion though 
 	}
 }
 
-class Pool {
-	private resources: Map<string, PoolItem> = new Map<string, PoolItem>;
-	constructor(private readonly name?: string) {
-		for (let i: number = 0; i < 10; i++) {
-			this.resources.set("POOL"+i.toString(), new PoolItem());
-			Logger.sendLog(LogLevel.Verbose, ["Pool","constructor"], "Created Pooling Resource POOL"+i.toString());
-		}
+// TODO: Self-Repairing -
+export class Pool {
+	protected resources: Map<string, PoolItem> = new Map<string, PoolItem>;
+	constructor(
+		protected readonly name: string,
+		protected callback?: Object
+	) {
+		
 	}
 
 	// --- PROPERTY ACCESSORS --- 
@@ -80,6 +85,7 @@ class Pool {
 
 	// sets every resource within the pool to the callback, either a variable or a function
 	public initResources(callback: Object): void {
+		this.callback = callback; // set the pool callback to be this functions callback, as this is what the pool covers now
 		this.resources.forEach((item) => {
 			item.initCallback(callback);
 		})
@@ -107,43 +113,107 @@ class Pool {
 	public requestForResource(): PoolItemPair | undefined {
 		const selectedResource = this.getAnyStandbyResource();
 		if (!selectedResource) {
-			Logger.sendLog(LogLevel.Warning, ["Pool", "requestForResource()"], formatError(PoolError.POOL_NO_RESOURCES_ON_STANDBY,this.name));
+			Logger.sendLog(LogLevel.Warning, ["Pool("+this.name+")", "requestForResource()"], formatError(PoolError.POOL_NO_RESOURCES_ON_STANDBY,this.name));
 			return;
 		}
-		Logger.sendLog(LogLevel.Verbose, ["Pool", "requestForResource()"], "Dispatched resource "+selectedResource[0])
+
+		Logger.sendLog(LogLevel.Verbose, ["Pool("+this.name+")", "requestForResource()"], "Dispatched resource "+selectedResource[0]);
+
 		selectedResource[1].setActive();
 		return selectedResource;
 	}
 
 	public returnResource(resource: PoolItemPair) {
 		resource[1].setStandby();
-		Logger.sendLog(LogLevel.Verbose, ["Pool", "returnResource()"], resource[0]+" Was returned back to "+this.name)
+		Logger.sendLog(LogLevel.Verbose, ["Pool("+this.name+")", "returnResource()"], resource[0]+" Was returned back to "+this.name);
+	}
+
+	// TODO: Make this potentially on a cronjob, so the pool checks to repair any failures, or make it repair ON error instead
+	public restartResource(resource: PoolItem): void;
+	public restartResource(id: string): void;
+
+	// TODO: make this wait until the resource is on standby
+	public restartResource(search: PoolItem | string): void {
+		function restart(target: PoolItem | [string, PoolItem]) {
+			if (target instanceof PoolItem) {
+				target.setShutdown();
+				// @ts-ignore - `this` will always be passed in via call
+				this.resources.delete(search);
+			} else {
+				target[1].setShutdown();
+				// @ts-ignore - `this` will always be passed in via call
+				this.resources.delete(target[1]);
+			}
+
+			// @ts-ignore - `this` will always be passed in via call
+			this.resources.set("POOL"+this.poolSize, new PoolItem(this.callback));
+		}
+		if (typeof search === "string") { // is the search condition by key or value?
+			const target = this.resources.get(search); // get the value by the key
+			if (!target) return;
+
+			Logger.sendLog(LogLevel.Verbose, ["Pool("+this.name+")", "restartResource()"], "Restarting "+search);
+
+			restart.call(this, target);
+
+		} else if (search instanceof PoolItem) {
+			const target = this.resources.entries().find(([_,item]) => item === search); // get the value by the value
+			if (!target) return;
+
+			Logger.sendLog(LogLevel.Verbose, ["Pool("+this.name+")", "restartResource()"], "Restarting "+target[0]);
+
+			restart.call(this, target);
+		}
+	}
+
+}
+
+export class FixedPool extends Pool {
+	constructor(
+		name: string,
+		size: number,
+		callback?: Object
+	) {
+		super(name, callback);
+		for (let i: number = 0; i < size; i++) {
+			this.resources.set("POOL"+i.toString(), new PoolItem(callback));
+			Logger.sendLog(LogLevel.Verbose, ["Pool("+name+")","constructor"], "Created Pooling Resource POOL"+i.toString());
+		}
 	}
 }
 
-const p = new Pool("TestPool");
-p.initResources([()=>{console.log("Called a pools resource!: Hello! I am a pool resource")}, {
-	name:"Pooling resource!"
-}])
-Logger.sendLog(LogLevel.Verbose, ["testpool > Resource States Before Request"], p.poolStates);
-Logger.sendLog(LogLevel.Verbose, ["testpool > Pool Size"], p.poolSize);
-Logger.sendLog(LogLevel.Verbose, ["testpool"], "Requesting for a resource on standby");
-const b = p.requestForResource()
-if (b) {
-	Logger.sendLog(LogLevel.Verbose, ["testpool > Resource States After Request"], p.poolStates);
-	Logger.sendLog(LogLevel.Verbose, ["testpool > Requested Resource"], b);
-	Logger.sendLog(LogLevel.Verbose, ["testpool > Requested Resource Value 2"], (b[1].callback as any[])[1]);
-	(b[1].callback as any[])[0]();
-	p.returnResource(b)
-};
+export class DynamicPool extends Pool {
+	constructor(
+		name: string,
+		callback?: Object
+	) {
+		super(name, callback);
+	}
 
+	// adds a resource into the pool with the name as the lenght
+	public addResource(callback?: PoolItem): void {
+		this.resources.set(
+			"POOL"+this.poolSize,
+			new PoolItem(callback? callback : this.callback) // if callback isnt defined, fallback to the callback passed in the class
+		);
+	}
 
+	// same as add resource but does it multiple times
+	public addResources(size: number, callback?: PoolItem): void {
+		for (let i = 0; i < size; i++) {
+			this.resources.set(
+				"POOL"+this.poolSize,
+				new PoolItem(callback? callback : this.callback)
+			);
+		}
+	}
+
+	public removeResource(id: string): boolean {
+		return this.resources.delete(id)
+	}
+}
 // class PoolManager {
 // 	constructor(pool: Pool) {
 
 // 	}
 // }
-
-export function a() {
-
-}
