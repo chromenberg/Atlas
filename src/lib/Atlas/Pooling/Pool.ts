@@ -73,26 +73,31 @@ export class Pool {
 	}
 
 	public get poolStates(): PoolStates[] {
-		return this.resources.entries().map((kv_pair,v) => {
-			return {
-				key: kv_pair[0],
-				state: kv_pair[1].state
-			}
-		}).toArray();
+		
+		return Array.from(this.resources.entries()).map(
+			(kv_pair,v) => {
+				return {
+					key: kv_pair[0],
+					state: kv_pair[1].state
+				}
+		});
 	}
 
 	// --- Methods ---
 
 	// sets every resource within the pool to the callback, either a variable or a function
-	public initResources(callback: Object): void {
+	public initResources(callback: Object): Map<string, PoolItem> {
 		this.callback = callback; // set the pool callback to be this functions callback, as this is what the pool covers now
 		this.resources.forEach((item) => {
 			item.initCallback(callback);
 		})
+		return this.resources;
 	}
 
 	public getAnyStandbyResource(): PoolItemPair | undefined {
-		return this.resources.entries().find(([key, value]) => value.state === PoolItemState.STANDBY);
+		return Array.from(this.resources.entries()).find(
+			([key, value]) => value.state === PoolItemState.STANDBY
+		);
 	}
 
 
@@ -142,7 +147,7 @@ export class Pool {
 			} else {
 				target[1].setShutdown();
 				// @ts-ignore - `this` will always be passed in via call
-				this.resources.delete(target[1]);
+				this.resources.delete(target[0]);
 			}
 
 			// @ts-ignore - `this` will always be passed in via call
@@ -157,7 +162,10 @@ export class Pool {
 			restart.call(this, target);
 
 		} else if (search instanceof PoolItem) {
-			const target = this.resources.entries().find(([_,item]) => item === search); // get the value by the value
+			const target = Array.from(this.resources.entries()).find(
+				([_,item]) => item === search
+			); // get the value by the value
+
 			if (!target) return;
 
 			Logger.sendLog(LogLevel.Verbose, ["Pool("+this.name+")", "restartResource()"], "Restarting "+target[0]);
@@ -217,3 +225,6 @@ export class DynamicPool extends Pool {
 
 // 	}
 // }
+export function a() {
+
+}

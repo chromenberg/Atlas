@@ -2,6 +2,7 @@ import { Client } from "cassandra-driver";
 import { AtlasDB } from "../Configs/Config.js";
 import type { ConcatenatedQuery, CQLObjType, CQLOpType } from "./typings/CQLRequests.js";
 import {Logger, LogLevel} from "../../../../Logging/dist/Logger.js"
+import { DynamicPool, FixedPool } from "./Pooling/Pool.js";
 
 class CQLRequest {
     constructor(
@@ -28,14 +29,36 @@ class AtlasConnection {
             contactPoints: AtlasDB.Connect.Locations,
             localDataCenter: "datacenter1",
             credentials: AtlasDB.Auth,
-            keyspace: "ATLAS"
+            keyspace:"atlas" // keyspaces are always lowercase
         })
+        this.cluster.connect().then(()=>{
+            this.cluster.emit("ready");
+        }); // idk if there are any sideeffects
+        
+        
+    }
+    
+    public onceStarted(callback: CallableFunction, ...args: any[]): void {
+        this.cluster.once("ready", () => {
+            callback(args);
+        });
     }
 
-     
+
 }
 
-class AtlasConnectionPool {
+class AtlasConnectionPool extends FixedPool {
+    constructor() {
+        super("ATLAS_CONNECTION_POOL", 10);
+        this.initResources(new AtlasConnection()).forEach((item, key) => {
+            (item.callback as AtlasConnection).onceStarted(() => {
+                Logger.sendLog(LogLevel.Info, ["Atlas", "ConnectionPool"], key,"")
+            })
+        })
+        
+    }
+
+
     // have a map of different connections
     // when a function wants to make a request it can either keep using the same connection or:
     // if it has returned the connection to the pool
@@ -50,9 +73,11 @@ class AtlasConnectionPool {
         if the connection is available then the pool will pass  the connection to the requester and
         flag the connection as "IN USE"
     */
+
 }
 
-class Atlas {
+export class Atlas {
+    private connections: AtlasConnectionPool = new AtlasConnectionPool();
     constructor() {
 
     }
