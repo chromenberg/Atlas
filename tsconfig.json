@@ -29,8 +29,8 @@
     // "noImplicitReturns": true,
     // "noImplicitOverride": true,
     // "noUnusedLocals": true,
-    // "noUnusedParameters": true,
-    // "noFallthroughCasesInSwitch": true,
+    //"noUnusedParameters": true,
+    //"noFallthroughCasesInSwitch": true,
     // "noPropertyAccessFromIndexSignature": true,
 
     // Recommended Options
@@ -47,5 +47,6 @@
     "explainFiles": true,
     "resolveJsonModule": true,
     "pretty": true,
+    "experimentalDecorators": true
   }
 }
