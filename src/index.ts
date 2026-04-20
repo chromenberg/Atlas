@@ -1,6 +1,6 @@
-import { Atlas } from "./lib/Atlas/AtlasClient.js";
+import { Atlas } from "./lib/AtlasClient.js";
 new Atlas()
-import { a } from "./lib/Atlas/Pooling/Pool.js";
+import { a } from "./lib/modules/pooling/Pool.js";
 a()
 // KEYSPACE HAS BEEN CREATED "ATLAS"
 // AtlasClient.init()

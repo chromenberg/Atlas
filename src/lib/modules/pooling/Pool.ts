@@ -138,6 +138,11 @@ export class Pool {
 	public restartResource(id: string): void;
 
 	// TODO: make this wait until the resource is on standby
+	/**
+	 * WHY DOESNT IT SHOW THE DESCRIPTION OF THIS WHAT THE FUCK JSDOC
+	 * @param search 
+	 * @returns 
+	 */
 	public restartResource(search: PoolItem | string): void {
 		function restart(target: PoolItem | [string, PoolItem]) {
 			if (target instanceof PoolItem) {
@@ -158,18 +163,14 @@ export class Pool {
 			if (!target) return;
 
 			Logger.sendLog(LogLevel.Verbose, ["Pool("+this.name+")", "restartResource()"], "Restarting "+search);
-
 			restart.call(this, target);
-
 		} else if (search instanceof PoolItem) {
 			const target = Array.from(this.resources.entries()).find(
 				([_,item]) => item === search
 			); // get the value by the value
-
 			if (!target) return;
 
 			Logger.sendLog(LogLevel.Verbose, ["Pool("+this.name+")", "restartResource()"], "Restarting "+target[0]);
-
 			restart.call(this, target);
 		}
 	}
@@ -177,12 +178,14 @@ export class Pool {
 }
 
 export class FixedPool extends Pool {
+	public readonly desiredSize: number;
 	constructor(
 		name: string,
 		size: number,
 		callback?: Object
 	) {
 		super(name, callback);
+		this.desiredSize = size; // allow accessing the target size of the pool
 		for (let i: number = 0; i < size; i++) {
 			this.resources.set("POOL"+i.toString(), new PoolItem(callback));
 			Logger.sendLog(LogLevel.Verbose, ["Pool("+name+")","constructor"], "Created Pooling Resource POOL"+i.toString());
