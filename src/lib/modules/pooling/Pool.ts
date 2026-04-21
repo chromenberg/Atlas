@@ -1,5 +1,6 @@
 import { Logger, LogLevel } from "../../../../../Logging/dist/Logger.js";
 import { formatError } from "../../ErrorFormatter.js";
+import { StatesObject } from "../StateListener.js";
 import { PoolError } from "./PoolErrors.js";
 
 export enum PoolItemState {
@@ -179,17 +180,28 @@ export class Pool {
 
 export class FixedPool extends Pool {
 	public readonly desiredSize: number;
+	private _states: StatesObject = new StatesObject();
+
 	constructor(
 		name: string,
 		size: number,
 		callback?: Object
 	) {
 		super(name, callback);
+
+		this._states.setTargetState(PoolItemState.STANDBY);
 		this.desiredSize = size; // allow accessing the target size of the pool
+		
 		for (let i: number = 0; i < size; i++) {
 			this.resources.set("POOL"+i.toString(), new PoolItem(callback));
+			this._states.addState("POOL"+i.toString(), PoolItemState.PREPARE);
+
 			Logger.sendLog(LogLevel.Verbose, ["Pool("+name+")","constructor"], "Created Pooling Resource POOL"+i.toString());
 		}
+	}
+
+	public get states(): StatesObject {
+		return this._states;
 	}
 }
 
