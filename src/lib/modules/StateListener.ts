@@ -83,7 +83,7 @@ export class StatesObject extends EventEmitter {
     this._states[key] = state;
     this.emit(StateEvents.StateChanged);
     // check if every state is the target state and if so emit state ready
-    if (Object.values(this._states).every(state => this._targetState)) {
+    if (Object.values(this._states).every(state => state === this._targetState)) {
       this.emit(StateEvents.StateTargetReached, this._states);
     }
   }
