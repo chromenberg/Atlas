@@ -16,7 +16,7 @@ export interface PoolStates {
 export type PoolItemPair = [string, PoolItem];
 
 // contains the state and callback of a item used in the pool
-class PoolItem {
+export class PoolItem {
 	private _state: number;
 	constructor(
 		private _callback?: Object
@@ -94,7 +94,7 @@ export class Pool {
 		return this.resources;
 	}
 
-	public getAnyStandbyResource(): PoolItemPair | undefined {
+	protected getAnyStandbyResource(): PoolItemPair | undefined {
 		return Array.from(this.resources.entries()).find(
 			([key, value]) => value.state === PoolItemState.STANDBY
 		);
