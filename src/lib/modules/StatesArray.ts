@@ -46,7 +46,10 @@ export class StateListener extends EventEmitter {
 export class StatesObject extends EventEmitter {
   protected _states: StateObject = {};
   private _targetState: State;
-  constructor(initialStates?: StateObject) {
+  constructor(
+    initialStates?: StateObject,
+    targetState?: State
+  ) {
     super(initialStates);
     if (initialStates) { this._states = initialStates };
   }
