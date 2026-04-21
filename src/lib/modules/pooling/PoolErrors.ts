@@ -10,6 +10,12 @@ export enum PoolErrorCodes {
     PoolDispatchedResourceInActive,
     PoolNoResourcesOnStandby
 }
+
+export interface PoolError {
+    message: string
+    code: PoolErrorCodes
+}
+
 export const PoolError = {
     POOL_FAILED_RESOURCE_INIT: {
         message: "$1 failed to initialize $0. State was either incorrect or callback was already set",
