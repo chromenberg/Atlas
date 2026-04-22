@@ -37,7 +37,7 @@ export class StateListener extends EventEmitter {
   ) {
     super();
     if (initialStates) { this._states = initialStates };
-    if (targetState) {this._targetState = targetState};
+    if (targetState) { this._targetState = targetState };
   }
 
   public addState(state: State) {
@@ -71,7 +71,7 @@ export class StatesObject extends EventEmitter {
   ) {
     super(initialStates);
     if (initialStates) { this._states = initialStates };
-    if (targetState) {this._targetState = targetState};
+    if (targetState) { this._targetState = targetState };
   }
 
   public addState(key: string | symbol, state: State): void {

@@ -179,7 +179,7 @@ export class Pool {
 }
 
 export class FixedPool extends Pool {
-	public readonly desiredSize: number;
+	public readonly size: number;
 	private _states: StatesObject = new StatesObject();
 
 	constructor(
@@ -190,13 +190,13 @@ export class FixedPool extends Pool {
 		super(name, callback);
 
 		this._states.setTargetState(PoolItemState.STANDBY);
-		this.desiredSize = size; // allow accessing the target size of the pool
+		this.size = size; // allow accessing the target size of the pool
 		
+		Logger.sendLog(LogLevel.Verbose, ["Pool("+name+")","constructor"], "Creating", size.toString(), "resources");
 		for (let i: number = 0; i < size; i++) {
 			this.resources.set("POOL"+i.toString(), new PoolItem(callback));
 			this._states.addState("POOL"+i.toString(), PoolItemState.PREPARE);
 
-			Logger.sendLog(LogLevel.Verbose, ["Pool("+name+")","constructor"], "Created Pooling Resource POOL"+i.toString());
 		}
 	}
 

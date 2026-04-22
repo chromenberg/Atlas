@@ -68,14 +68,17 @@ namespace Pooling {
     public readonly events: EventEmitter = new EventEmitter();
     private _state: PoolState = PoolState.INITIALIZING;
     
-    constructor() {
-      super("ATLAS_CONNECTION_POOL", 10);
+    constructor(poolSize: number) {
+      Logger.sendLog(LogLevel.Verbose, ["Atlas", "ConnectionPool"], "Initializing ATLAS Connection Pool. Size:", poolSize);
+      super("ATLAS_CONNECTION_POOL", poolSize);
 
+      // listen fopr the state listener ready signal
       this.states.on(StateEvents.StateTargetReached, (states) => {
         Logger.sendLog(LogLevel.Info, ["Atlas", "ConnectionPool"], "ATLAS Connection Pool is ready, requests can now be made");
         this._state = PoolState.READY;
       })
 
+      // populate the pool with AtlasConnection, and then for every resource add the oncestarted hook
       this.initResources(new AtlasConnection()).forEach((item, key) => {
         (item.callback as AtlasConnection).onceStarted(() => { // run this code once when a resource starts
           Logger.sendLog(LogLevel.Verbose, ["Atlas", "ConnectionPool"], key, "initialized and connected to database");
@@ -103,7 +106,7 @@ namespace Pooling {
 }
 
 export class AtlasClient {
-  private connections: Pooling.AtlasConnectionPool = new Pooling.AtlasConnectionPool();
+  private connections: Pooling.AtlasConnectionPool = new Pooling.AtlasConnectionPool(10);
   private states = {
     connections: new StateListener(Pooling.PoolState.INITIALIZING),
   };
@@ -159,5 +162,9 @@ export class AtlasClient {
       Logger.sendLog(LogLevel.Error, ["Atlas", "execute()"], "ATLAS was supplied too many arguments and no valid overload was found. ", args);
       throw new Error("ATLAS was passed too many arguments into execute(), please check ensure LogLevel encompasses ERROR for more info.")
     }
+  }
+
+  public getTable() {
+
   }
 }
