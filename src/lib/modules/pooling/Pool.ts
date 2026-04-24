@@ -14,7 +14,10 @@ export interface PoolStates {
 	key: string
 	state: PoolItemState
 }
-export type PoolItemPair = [string, PoolItem];
+export interface PoolItemPair {
+	key: string
+	resource: PoolItem
+}
 
 // contains the state and callback of a item used in the pool
 export class PoolItem {
@@ -86,6 +89,13 @@ export class Pool {
 
 	// --- Methods ---
 
+	private toObject(obj: [string, PoolItem]): PoolItemPair {
+		return {
+			key: obj[0],
+			resource: obj[1]
+		};
+	}
+
 	// sets every resource within the pool to the callback, either a variable or a function
 	public initResources(callback: Object): Map<string, PoolItem> {
 		this.callback = callback; // set the pool callback to be this functions callback, as this is what the pool covers now
@@ -96,9 +106,11 @@ export class Pool {
 	}
 
 	protected getAnyStandbyResource(): PoolItemPair | undefined {
-		return Array.from(this.resources.entries()).find(
+		const res = Array.from(this.resources.entries()).find(
 			([key, value]) => value.state === PoolItemState.STANDBY
-		);
+		)
+		if (!res) return;
+		return this.toObject(res);
 	}
 
 
@@ -123,15 +135,15 @@ export class Pool {
 			return;
 		}
 
-		Logger.sendLog(LogLevel.Verbose, ["Pool("+this.name+")", "requestForResource()"], "Dispatched resource "+selectedResource[0]);
+		Logger.sendLog(LogLevel.Verbose, ["Pool("+this.name+")", "requestForResource()"], "Dispatched resource "+selectedResource.key);
 
-		selectedResource[1].setActive();
+		selectedResource.resource.setActive();
 		return selectedResource;
 	}
 
 	public returnResource(resource: PoolItemPair) {
-		resource[1].setStandby();
-		Logger.sendLog(LogLevel.Verbose, ["Pool("+this.name+")", "returnResource()"], resource[0]+" Was returned back to "+this.name);
+		resource.resource.setStandby();
+		Logger.sendLog(LogLevel.Verbose, ["Pool("+this.name+")", "returnResource()"], resource.key+" Was returned back to "+this.name);
 	}
 
 	// TODO: Make this potentially on a cronjob, so the pool checks to repair any failures, or make it repair ON error instead
@@ -159,6 +171,7 @@ export class Pool {
 			// @ts-ignore - `this` will always be passed in via call
 			this.resources.set("POOL"+this.poolSize, new PoolItem(this.callback));
 		}
+		
 		if (typeof search === "string") { // is the search condition by key or value?
 			const target = this.resources.get(search); // get the value by the key
 			if (!target) return;
