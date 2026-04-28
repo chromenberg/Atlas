@@ -1,6 +1,12 @@
 import { Atlas } from "./lib/AtlasManager.js";
 import "./lib/modules/snowflake/Snowflake.js";
+import { SnowflakeNode } from "./lib/modules/snowflake/Snowflake.js";
 // @ts-ignore
-console.log(SnowflakeGenerator(1,10,12,8597346).GenerateID().toString())
+console.log(SnowflakeNode({
+    workerID: 1,
+    workerBits: 10,
+    sequenceBits: 12,
+    startEpoch: 8597346
+}).GenerateID().toString())
 // KEYSPACE HAS BEEN CREATED "ATLAS"
 // AtlasClient.init()
