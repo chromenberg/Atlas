@@ -1,6 +1,7 @@
 import { Atlas } from "./lib/AtlasManager.js";
 import "./lib/modules/snowflake/Snowflake.js";
 import { SnowflakeNode } from "./lib/modules/snowflake/Snowflake.js";
+import "./testing/debug/DummyServer.js"
 // @ts-ignore
 console.log(SnowflakeNode({
     workerID: 1,

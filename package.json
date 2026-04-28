@@ -15,7 +15,9 @@
     "buildsnowflake": "GOOS=js GOARCH=wasm go build -o ./dist/lib/modules/snowflake/Snowflake.wasm ./src/lib/modules/snowflake/Snowflake.go && tsgo && node ./dist/index.js"
   },
   "dependencies": {
+    "@types/express": "^5.0.6",
     "cassandra-driver": "^4.8.0",
+    "express": "^5.2.1",
     "typescript": "^6.0.3"
   },
   "devDependencies": {

@@ -24,7 +24,7 @@ export class Atlas {
             Logger.sendLog(LogLevel.Info, ["ATLAS", "init()"], "Setting up users table");
             await this._client.execute(resource, `
                 CREATE TABLE IF NOT EXISTS users (
-                    user_id text,
+                    user_id bigint,
                     username text,
                     display_name text,
                     created_at timestamp,
@@ -113,4 +113,5 @@ export class Atlas {
 
     }
 
+    
 }

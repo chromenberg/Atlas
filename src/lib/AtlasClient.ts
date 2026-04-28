@@ -7,6 +7,7 @@ import EventEmitter from "events";
 import { PoolError } from "./modules/pooling/PoolErrors.js";
 import { StateEvents, StateListener, StatesObject } from "./modules/StateListener.js";
 import type { Message } from "./modules/Types.js";
+import { UserTableManager } from "./modules/AtlasModules.js";
 
 type Nullable<T> = T | null;
 type AtlasClientResponse = types.ResultSet | PoolError;
@@ -163,6 +164,7 @@ interface BaseUser {
 export class AtlasClient {
   private connections: Pooling.AtlasConnectionPool = new Pooling.AtlasConnectionPool(10);
   private requests: RequestHelper = new RequestHelper(this);
+  public readonly users: UserTableManager = new UserTableManager(this);
   private states = {
     connections: new StateListener(Pooling.PoolState.INITIALIZING),
   };
