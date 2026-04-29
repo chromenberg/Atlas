@@ -10,6 +10,7 @@ console.log(SnowflakeNode({
     sequenceBits: 12,
     startEpoch: 8597346
 }).GenerateID().toString())
-connectAtlas()
+const atlas = new Atlas();
+connectAtlas(atlas)
 // KEYSPACE HAS BEEN CREATED "ATLAS"
 // AtlasClient.init()

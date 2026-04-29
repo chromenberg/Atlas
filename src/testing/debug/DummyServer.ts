@@ -4,7 +4,7 @@ import express from "express";
 import { Atlas } from "../../lib/AtlasManager.js";
 import { Logger, LogLevel } from "../../../../Common/Logging/dist/Logger.js";
 const server = express()
-const a = new Atlas()
+// const a = new Atlas()
 server.listen(8080)
 /*
 This endpoint requires one of the following:
@@ -16,18 +16,18 @@ The user has an outgoing friend request to the current user
 A valid join_request_id is provided
 */
 server.get("/api/v1/users/:user_id/profile", async (req, res) => {
-    const user = (await a.client.users.getUserByID(req.params.user_id)).rows
+    // const user = (await a.client.users.getUserByID(req.params.user_id)).rows
     res.setHeader("Content-Type", "application/json");
     res.send({
         ROUTE_NAME: req.url,
         ROUTE_PARAMS: req.params,
-        RESPONSE: user
+        // RESPONSE: user
     });
     res.end()
     Logger.sendLog(
         LogLevel.Info,
         ["ATLAS", "DummyServer", req.url],
         "Retrieved info for user id ("+req.params.user_id+")\n",
-        user
+        // user
     )
 })
