@@ -2,10 +2,10 @@
 // Useful for debugging or making a very rudimentary version of wyvern that is API only
 import express from "express";
 import { Atlas } from "../../lib/AtlasManager.js";
-import { Logger, LogLevel } from "../../../../Logging/dist/Logger.js";
+import { Logger, LogLevel } from "../../../../Common/Logging/dist/Logger.js";
 const server = express()
 const a = new Atlas()
-server.listen(80)
+server.listen(8080)
 /*
 This endpoint requires one of the following:
 The user is a bot

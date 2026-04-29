@@ -1,4 +1,4 @@
-import { Logger, LogLevel } from "../../../Logging/dist/Logger.js";
+import { Logger, LogLevel } from "../../../Common/Logging/dist/Logger.js";
 import { AtlasClient } from "./AtlasClient.js";
 
 export class Atlas {

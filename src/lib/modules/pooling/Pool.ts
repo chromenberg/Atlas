@@ -1,4 +1,4 @@
-import { Logger, LogLevel } from "../../../../../Logging/dist/Logger.js";
+import { Logger, LogLevel } from "../../../../../Common/Logging/dist/Logger.js";
 import { formatError } from "../../ErrorFormatter.js";
 import { StatesObject } from "../StateListener.js";
 import { PoolError } from "./PoolErrors.js";
