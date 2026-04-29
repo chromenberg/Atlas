@@ -44,7 +44,7 @@
 
     "allowJs": true,
     "esModuleInterop": true,
-    "explainFiles": true,
+    "explainFiles": false,
     "resolveJsonModule": true,
     "pretty": true,
     "experimentalDecorators": true

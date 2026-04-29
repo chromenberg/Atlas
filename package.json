@@ -10,7 +10,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "tsc && node ./dist/index.js",
     "trace": "tsc && node --trace-warnings ./dist/index.js",
-    "tsgo-start": "tsgo && node ./dist/index.js",
+    "tsgo-start": "tsgo && sudo node ./dist/index.js",
     "tsgo-trace": "tsgo && node --trace-warnings ./dist/index.js",
     "buildsnowflake": "GOOS=js GOARCH=wasm go build -o ./dist/lib/modules/snowflake/Snowflake.wasm ./src/lib/modules/snowflake/Snowflake.go && tsgo && node ./dist/index.js"
   },
